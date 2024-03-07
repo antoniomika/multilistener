@@ -124,12 +124,13 @@ func Listen(listeners map[string][]string) (net.Listener, error) {
 	for _, l := range m.listeners {
 		go func(l net.Listener) {
 			for {
+				c, e := l.Accept()
+				msg := chanMsg{conn: c, err: e}
 				select {
 				case <-m.stop:
 					return
-				default:
-					c, e := l.Accept()
-					m.accept <- chanMsg{conn: c, err: e}
+				case m.accept <- msg:
+					continue
 				}
 			}
 		}(l)
